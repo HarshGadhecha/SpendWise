@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.spendwise.app",
+      "bundleIdentifier": "com.finance.app",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Allow SpendWise to use Face ID for secure authentication",
         "NSCameraUsageDescription": "Allow SpendWise to use camera to capture receipts and documents",
@@ -18,7 +18,7 @@
       }
     },
     "android": {
-      "package": "com.spendwise.app",
+      "package": "com.finance.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
