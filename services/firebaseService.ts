@@ -1,33 +1,24 @@
-import {
-  collection,
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  Timestamp,
-} from 'firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Wallet, Transaction, Budget, Goal, Bill, Investment, LifeInsurance } from '@/lib/types';
+
+type Timestamp = FirebaseFirestoreTypes.Timestamp;
 
 class FirebaseService {
   // Wallets
   async saveWallet(wallet: Wallet): Promise<void> {
-    await setDoc(doc(db, 'wallets', wallet.id), {
+    await db().collection('wallets').doc(wallet.id).set({
       ...wallet,
-      createdAt: Timestamp.fromDate(wallet.createdAt),
-      updatedAt: Timestamp.fromDate(wallet.updatedAt),
+      createdAt: firestore.Timestamp.fromDate(wallet.createdAt),
+      updatedAt: firestore.Timestamp.fromDate(wallet.updatedAt),
     });
   }
 
   async getWallets(userId: string): Promise<Wallet[]> {
-    const q = query(collection(db, 'wallets'), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
+    const snapshot = await db()
+      .collection('wallets')
+      .where('userId', '==', userId)
+      .get();
     return snapshot.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
@@ -38,21 +29,20 @@ class FirebaseService {
 
   // Transactions
   async saveTransaction(transaction: Transaction): Promise<void> {
-    await setDoc(doc(db, 'transactions', transaction.id), {
+    await db().collection('transactions').doc(transaction.id).set({
       ...transaction,
-      date: Timestamp.fromDate(transaction.date),
-      createdAt: Timestamp.fromDate(transaction.createdAt),
-      updatedAt: Timestamp.fromDate(transaction.updatedAt),
+      date: firestore.Timestamp.fromDate(transaction.date),
+      createdAt: firestore.Timestamp.fromDate(transaction.createdAt),
+      updatedAt: firestore.Timestamp.fromDate(transaction.updatedAt),
     });
   }
 
   async getTransactions(userId: string): Promise<Transaction[]> {
-    const q = query(
-      collection(db, 'transactions'),
-      where('userId', '==', userId),
-      orderBy('date', 'desc')
-    );
-    const snapshot = await getDocs(q);
+    const snapshot = await db()
+      .collection('transactions')
+      .where('userId', '==', userId)
+      .orderBy('date', 'desc')
+      .get();
     return snapshot.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
@@ -64,18 +54,20 @@ class FirebaseService {
 
   // Budgets
   async saveBudget(budget: Budget): Promise<void> {
-    await setDoc(doc(db, 'budgets', budget.id), {
+    await db().collection('budgets').doc(budget.id).set({
       ...budget,
-      startDate: Timestamp.fromDate(budget.startDate),
-      endDate: Timestamp.fromDate(budget.endDate),
-      createdAt: Timestamp.fromDate(budget.createdAt),
-      updatedAt: Timestamp.fromDate(budget.updatedAt),
+      startDate: firestore.Timestamp.fromDate(budget.startDate),
+      endDate: firestore.Timestamp.fromDate(budget.endDate),
+      createdAt: firestore.Timestamp.fromDate(budget.createdAt),
+      updatedAt: firestore.Timestamp.fromDate(budget.updatedAt),
     });
   }
 
   async getBudgets(userId: string): Promise<Budget[]> {
-    const q = query(collection(db, 'budgets'), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
+    const snapshot = await db()
+      .collection('budgets')
+      .where('userId', '==', userId)
+      .get();
     return snapshot.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
@@ -88,17 +80,19 @@ class FirebaseService {
 
   // Goals
   async saveGoal(goal: Goal): Promise<void> {
-    await setDoc(doc(db, 'goals', goal.id), {
+    await db().collection('goals').doc(goal.id).set({
       ...goal,
-      deadline: goal.deadline ? Timestamp.fromDate(goal.deadline) : null,
-      createdAt: Timestamp.fromDate(goal.createdAt),
-      updatedAt: Timestamp.fromDate(goal.updatedAt),
+      deadline: goal.deadline ? firestore.Timestamp.fromDate(goal.deadline) : null,
+      createdAt: firestore.Timestamp.fromDate(goal.createdAt),
+      updatedAt: firestore.Timestamp.fromDate(goal.updatedAt),
     });
   }
 
   async getGoals(userId: string): Promise<Goal[]> {
-    const q = query(collection(db, 'goals'), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
+    const snapshot = await db()
+      .collection('goals')
+      .where('userId', '==', userId)
+      .get();
     return snapshot.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
@@ -110,18 +104,20 @@ class FirebaseService {
 
   // Bills
   async saveBill(bill: Bill): Promise<void> {
-    await setDoc(doc(db, 'bills', bill.id), {
+    await db().collection('bills').doc(bill.id).set({
       ...bill,
-      dueDate: Timestamp.fromDate(bill.dueDate),
-      paidDate: bill.paidDate ? Timestamp.fromDate(bill.paidDate) : null,
-      createdAt: Timestamp.fromDate(bill.createdAt),
-      updatedAt: Timestamp.fromDate(bill.updatedAt),
+      dueDate: firestore.Timestamp.fromDate(bill.dueDate),
+      paidDate: bill.paidDate ? firestore.Timestamp.fromDate(bill.paidDate) : null,
+      createdAt: firestore.Timestamp.fromDate(bill.createdAt),
+      updatedAt: firestore.Timestamp.fromDate(bill.updatedAt),
     });
   }
 
   async getBills(userId: string): Promise<Bill[]> {
-    const q = query(collection(db, 'bills'), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
+    const snapshot = await db()
+      .collection('bills')
+      .where('userId', '==', userId)
+      .get();
     return snapshot.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
@@ -134,20 +130,22 @@ class FirebaseService {
 
   // Investments
   async saveInvestment(investment: Investment): Promise<void> {
-    await setDoc(doc(db, 'investments', investment.id), {
+    await db().collection('investments').doc(investment.id).set({
       ...investment,
-      startDate: Timestamp.fromDate(investment.startDate),
+      startDate: firestore.Timestamp.fromDate(investment.startDate),
       maturityDate: investment.maturityDate
-        ? Timestamp.fromDate(investment.maturityDate)
+        ? firestore.Timestamp.fromDate(investment.maturityDate)
         : null,
-      createdAt: Timestamp.fromDate(investment.createdAt),
-      updatedAt: Timestamp.fromDate(investment.updatedAt),
+      createdAt: firestore.Timestamp.fromDate(investment.createdAt),
+      updatedAt: firestore.Timestamp.fromDate(investment.updatedAt),
     });
   }
 
   async getInvestments(userId: string): Promise<Investment[]> {
-    const q = query(collection(db, 'investments'), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
+    const snapshot = await db()
+      .collection('investments')
+      .where('userId', '==', userId)
+      .get();
     return snapshot.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
@@ -160,19 +158,21 @@ class FirebaseService {
 
   // Life Insurance
   async saveInsurance(insurance: LifeInsurance): Promise<void> {
-    await setDoc(doc(db, 'insurance', insurance.id), {
+    await db().collection('insurance').doc(insurance.id).set({
       ...insurance,
-      startDate: Timestamp.fromDate(insurance.startDate),
-      endDate: Timestamp.fromDate(insurance.endDate),
-      nextPremiumDate: Timestamp.fromDate(insurance.nextPremiumDate),
-      createdAt: Timestamp.fromDate(insurance.createdAt),
-      updatedAt: Timestamp.fromDate(insurance.updatedAt),
+      startDate: firestore.Timestamp.fromDate(insurance.startDate),
+      endDate: firestore.Timestamp.fromDate(insurance.endDate),
+      nextPremiumDate: firestore.Timestamp.fromDate(insurance.nextPremiumDate),
+      createdAt: firestore.Timestamp.fromDate(insurance.createdAt),
+      updatedAt: firestore.Timestamp.fromDate(insurance.updatedAt),
     });
   }
 
   async getInsurance(userId: string): Promise<LifeInsurance[]> {
-    const q = query(collection(db, 'insurance'), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
+    const snapshot = await db()
+      .collection('insurance')
+      .where('userId', '==', userId)
+      .get();
     return snapshot.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
@@ -185,8 +185,8 @@ class FirebaseService {
   }
 
   // Delete operations
-  async deleteDocument(collection: string, id: string): Promise<void> {
-    await deleteDoc(doc(db, collection, id));
+  async deleteDocument(collectionName: string, id: string): Promise<void> {
+    await db().collection(collectionName).doc(id).delete();
   }
 
   // Real-time listeners
@@ -195,14 +195,16 @@ class FirebaseService {
     userId: string,
     callback: (data: any[]) => void
   ): () => void {
-    const q = query(collection(db, collectionName), where('userId', '==', userId));
-    return onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      callback(data);
-    });
+    return db()
+      .collection(collectionName)
+      .where('userId', '==', userId)
+      .onSnapshot((snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        callback(data);
+      });
   }
 }
 
