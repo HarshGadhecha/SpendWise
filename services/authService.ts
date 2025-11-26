@@ -1,15 +1,22 @@
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
-import { auth as authInstance, db } from '@/lib/firebase/config';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithCredential,
+  User as FirebaseUser,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase/config';
 import { User } from '@/lib/types';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 import { storageUtils, STORAGE_KEYS } from '@/lib/store/storage';
 
-type FirebaseUser = FirebaseAuthTypes.User;
-
 class AuthService {
   // Initialize auth listener
   initAuthListener() {
-    return authInstance().onAuthStateChanged(async (firebaseUser) => {
+    return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const user = await this.getUserProfile(firebaseUser.uid);
         if (user) {
@@ -31,7 +38,7 @@ class AuthService {
   // Sign up with email and password
   async signUpWithEmail(email: string, password: string, displayName: string): Promise<FirebaseUser> {
     try {
-      const userCredential = await authInstance().createUserWithEmailAndPassword(email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
       // Create user profile in Firestore
       const user: Partial<User> = {
@@ -43,7 +50,7 @@ class AuthService {
         updatedAt: new Date(),
       };
 
-      await db().collection('users').doc(userCredential.user.uid).set(user);
+      await setDoc(doc(db, 'users', userCredential.user.uid), user);
 
       return userCredential.user;
     } catch (error: any) {
@@ -54,7 +61,7 @@ class AuthService {
   // Sign in with email and password
   async signInWithEmail(email: string, password: string): Promise<FirebaseUser> {
     try {
-      const userCredential = await authInstance().signInWithEmailAndPassword(email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return userCredential.user;
     } catch (error: any) {
       throw new Error(error.message);
@@ -64,12 +71,14 @@ class AuthService {
   // Sign in with Google
   async signInWithGoogle(idToken: string): Promise<FirebaseUser> {
     try {
-      const credential = auth.GoogleAuthProvider.credential(idToken);
-      const userCredential = await authInstance().signInWithCredential(credential);
+      const credential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, credential);
 
       // Check if user profile exists, if not create one
-      const userDoc = await db().collection('users').doc(userCredential.user.uid).get();
-      if (!userDoc.exists) {
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
         const user: Partial<User> = {
           id: userCredential.user.uid,
           email: userCredential.user.email!,
@@ -78,7 +87,7 @@ class AuthService {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        await db().collection('users').doc(userCredential.user.uid).set(user);
+        await setDoc(userDocRef, user);
       }
 
       return userCredential.user;
@@ -90,7 +99,7 @@ class AuthService {
   // Sign out
   async signOut(): Promise<void> {
     try {
-      await authInstance().signOut();
+      await firebaseSignOut(auth);
       useAuthStore.getState().logout();
       storageUtils.clear();
     } catch (error: any) {
@@ -101,8 +110,10 @@ class AuthService {
   // Get user profile from Firestore
   async getUserProfile(userId: string): Promise<User | null> {
     try {
-      const userDoc = await db().collection('users').doc(userId).get();
-      if (userDoc.exists) {
+      const userDocRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
         return userDoc.data() as User;
       }
       return null;
@@ -115,7 +126,8 @@ class AuthService {
   // Update user profile
   async updateUserProfile(userId: string, updates: Partial<User>): Promise<void> {
     try {
-      await db().collection('users').doc(userId).set({
+      const userDocRef = doc(db, 'users', userId);
+      await setDoc(userDocRef, {
         ...updates,
         updatedAt: new Date(),
       }, { merge: true });
@@ -143,7 +155,7 @@ class AuthService {
 
   // Get current user
   getCurrentUser(): FirebaseUser | null {
-    return authInstance().currentUser;
+    return auth.currentUser;
   }
 }
 
