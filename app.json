@@ -55,6 +55,7 @@
       ],
       "expo-secure-store",
       "expo-local-authentication",
+      "@react-native-async-storage/async-storage",
       [
         "expo-notifications",
         {
