@@ -17,21 +17,45 @@ class AuthService {
   initAuthListener() {
     return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const user = await this.getUserProfile(firebaseUser.uid);
-        if (user) {
-          useAuthStore.getState().setUser(user);
-          useAuthStore.getState().setIsAuthenticated(true);
+        // Try to get user profile from Firestore
+        let user = await this.getUserProfile(firebaseUser.uid);
 
-          // Check if onboarding is completed
-          const onboardingCompleted = storageUtils.get<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
-          useAuthStore.getState().setIsOnboardingCompleted(onboardingCompleted || false);
+        // If profile doesn't exist or fetch failed, create/use fallback from Firebase Auth
+        if (!user) {
+          const fallbackUser: User = {
+            id: firebaseUser.uid,
+            email: firebaseUser.email!,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          user = fallbackUser;
+
+          // Try to save to Firestore in background (don't block on this)
+          this.saveUserProfile(firebaseUser.uid, fallbackUser).catch(err => {
+            console.log('Will save profile when online:', err.message);
+          });
         }
+
+        useAuthStore.getState().setUser(user);
+        useAuthStore.getState().setIsAuthenticated(true);
+
+        // Check if onboarding is completed
+        const onboardingCompleted = storageUtils.get<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
+        useAuthStore.getState().setIsOnboardingCompleted(onboardingCompleted || false);
       } else {
         useAuthStore.getState().setUser(null);
         useAuthStore.getState().setIsAuthenticated(false);
       }
       useAuthStore.getState().setIsLoading(false);
     });
+  }
+
+  // Save user profile to Firestore
+  private async saveUserProfile(userId: string, user: Partial<User>): Promise<void> {
+    const userDocRef = doc(db, 'users', userId);
+    await setDoc(userDocRef, user, { merge: true });
   }
 
   // Sign in with Google
@@ -115,8 +139,13 @@ class AuthService {
         return userDoc.data() as User;
       }
       return null;
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
+    } catch (error: any) {
+      // Handle offline errors gracefully
+      if (error.code === 'unavailable' || error.message?.includes('offline')) {
+        console.log('Firestore offline, will use cached data or fallback');
+      } else {
+        console.error('Error fetching user profile:', error);
+      }
       return null;
     }
   }
