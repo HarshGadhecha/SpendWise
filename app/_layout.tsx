@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useThemeStore } from '@/lib/store/useThemeStore';
 import { authService } from '@/services/authService';
 
 export const unstable_settings = {
@@ -15,8 +16,12 @@ export const unstable_settings = {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, isOnboardingCompleted, isLoading, setIsLoading } = useAuthStore();
+  const { loadTheme } = useThemeStore();
 
   useEffect(() => {
+    // Initialize theme and auth
+    loadTheme();
+
     // Initialize auth listener
     const unsubscribe = authService.initAuthListener();
 
