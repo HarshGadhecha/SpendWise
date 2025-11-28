@@ -15,7 +15,7 @@ export default function WelcomeScreen() {
         {/* Logo/Icon */}
         <View style={styles.logoContainer}>
           <Text style={styles.logoEmoji}>💰</Text>
-          <Text style={styles.title}>SpendWise</Text>
+          <Text style={styles.title}>MintyFlow</Text>
           <Text style={styles.subtitle}>
             Your Smart Finance Companion
           </Text>
@@ -34,16 +34,9 @@ export default function WelcomeScreen() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.primaryButton]}
-            onPress={() => router.push('/auth/signup')}
+            onPress={() => router.push('/auth/social-login')}
           >
             <Text style={styles.primaryButtonText}>Get Started</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.secondaryButton]}
-            onPress={() => router.push('/auth/login')}
-          >
-            <Text style={styles.secondaryButtonText}>Sign In</Text>
           </TouchableOpacity>
         </View>
 

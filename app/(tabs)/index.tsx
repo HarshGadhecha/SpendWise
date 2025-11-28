@@ -48,7 +48,7 @@ export default function DashboardScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Hello, {user?.displayName || 'User'}! 👋</Text>
-            <Text style={styles.subtitle}>Welcome back to SpendWise</Text>
+            <Text style={styles.subtitle}>Welcome back to MintyFlow</Text>
           </View>
           <TouchableOpacity
             style={styles.notificationButton}

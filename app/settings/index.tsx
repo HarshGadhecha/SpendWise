@@ -139,7 +139,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingItem}>
             <Text style={styles.settingIcon}>⭐</Text>
-            <Text style={styles.settingText}>Rate SpendWise</Text>
+            <Text style={styles.settingText}>Rate MintyFlow</Text>
             <Text style={styles.settingArrow}>›</Text>
           </TouchableOpacity>
         </View>

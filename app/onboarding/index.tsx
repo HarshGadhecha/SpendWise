@@ -147,7 +147,7 @@ export default function OnboardingScreen() {
 function StepUserType({ selected, onSelect }: { selected: UserType; onSelect: (value: UserType) => void }) {
   return (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>How will you use SpendWise?</Text>
+      <Text style={styles.stepTitle}>How will you use MintyFlow?</Text>
       <Text style={styles.stepSubtitle}>Choose the option that best describes you</Text>
 
       <View style={styles.optionsContainer}>

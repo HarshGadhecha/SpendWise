@@ -1,6 +1,6 @@
-# 💰 SpendWise - Smart Finance Tracker
+# 💰 MintyFlow - Smart Finance Tracker
 
-SpendWise is a comprehensive, free, and ad-supported finance management app built with React Native and Expo. Track your income, expenses, investments, life insurance, and achieve your financial goals all in one place.
+MintyFlow is a comprehensive, free, and ad-supported finance management app built with React Native and Expo. Track your income, expenses, investments, life insurance, and achieve your financial goals all in one place.
 
 ## ✨ Features
 
@@ -40,7 +40,7 @@ SpendWise is a comprehensive, free, and ad-supported finance management app buil
 ## 📁 Project Structure
 
 ```
-SpendWise/
+MintyFlow/
 ├── app/                          # Expo Router pages
 │   ├── (tabs)/                   # Tab navigation
 │   │   └── index.tsx             # Dashboard
@@ -103,8 +103,8 @@ SpendWise/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YourUsername/SpendWise.git
-   cd SpendWise
+   git clone https://github.com/YourUsername/MintyFlow.git
+   cd MintyFlow
    ```
 
 2. **Install dependencies**
@@ -273,4 +273,4 @@ For questions or feedback, please open an issue on GitHub.
 
 ---
 
-Made with ❤️ by the SpendWise Team
+Made with ❤️ by the MintyFlow Team
