@@ -1,9 +1,8 @@
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   GoogleAuthProvider,
+  OAuthProvider,
   signInWithCredential,
   User as FirebaseUser,
 } from 'firebase/auth';
@@ -35,43 +34,42 @@ class AuthService {
     });
   }
 
-  // Sign up with email and password
-  async signUpWithEmail(email: string, password: string, displayName: string): Promise<FirebaseUser> {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-      // Create user profile in Firestore
-      const user: Partial<User> = {
-        id: userCredential.user.uid,
-        email: userCredential.user.email!,
-        displayName,
-        photoURL: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      await setDoc(doc(db, 'users', userCredential.user.uid), user);
-
-      return userCredential.user;
-    } catch (error: any) {
-      throw new Error(error.message);
-    }
-  }
-
-  // Sign in with email and password
-  async signInWithEmail(email: string, password: string): Promise<FirebaseUser> {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
-    } catch (error: any) {
-      throw new Error(error.message);
-    }
-  }
-
   // Sign in with Google
   async signInWithGoogle(idToken: string): Promise<FirebaseUser> {
     try {
       const credential = GoogleAuthProvider.credential(idToken);
+      const userCredential = await signInWithCredential(auth, credential);
+
+      // Check if user profile exists, if not create one
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        const user: Partial<User> = {
+          id: userCredential.user.uid,
+          email: userCredential.user.email!,
+          displayName: userCredential.user.displayName,
+          photoURL: userCredential.user.photoURL,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        await setDoc(userDocRef, user);
+      }
+
+      return userCredential.user;
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
+  }
+
+  // Sign in with Apple
+  async signInWithApple(identityToken: string, nonce?: string): Promise<FirebaseUser> {
+    try {
+      const provider = new OAuthProvider('apple.com');
+      const credential = provider.credential({
+        idToken: identityToken,
+        rawNonce: nonce,
+      });
       const userCredential = await signInWithCredential(auth, credential);
 
       // Check if user profile exists, if not create one

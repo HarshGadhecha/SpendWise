@@ -16,7 +16,7 @@ class SecurityService {
   }
 
   // Authenticate with biometrics
-  async authenticateWithBiometrics(reason: string = 'Authenticate to access SpendWise'): Promise<boolean> {
+  async authenticateWithBiometrics(reason: string = 'Authenticate to access MintyFlow'): Promise<boolean> {
     try {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: reason,
