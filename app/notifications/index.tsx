@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function NotificationsScreen() {
   const notifications = [
@@ -15,7 +15,7 @@ export default function NotificationsScreen() {
     {
       id: '2',
       title: 'Budget Alert',
-      message: 'You've spent 80% of your food budget',
+      message: "You've spent 80% of your food budget",
       time: '5 hours ago',
       icon: '⚠️',
       isRead: false,
