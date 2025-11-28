@@ -1,24 +1,24 @@
 {
   "expo": {
-    "name": "SpendWise",
-    "slug": "SpendWise",
+    "name": "MintyFlow",
+    "slug": "mintyflow",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "spendwise",
+    "scheme": "mintyflow",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.finly.app",
+      "bundleIdentifier": "com.mintyflow.app",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Allow SpendWise to use Face ID for secure authentication",
-        "NSCameraUsageDescription": "Allow SpendWise to use camera to capture receipts and documents",
-        "NSPhotoLibraryUsageDescription": "Allow SpendWise to access photos for receipts and documents"
+        "NSFaceIDUsageDescription": "Allow MintyFlow to use Face ID for secure authentication",
+        "NSCameraUsageDescription": "Allow MintyFlow to use camera to capture receipts and documents",
+        "NSPhotoLibraryUsageDescription": "Allow MintyFlow to access photos for receipts and documents"
       }
     },
     "android": {
-      "package": "com.finly.app",
+      "package": "com.mintyflow.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -73,13 +73,13 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow SpendWise to access your camera to capture receipts"
+          "cameraPermission": "Allow MintyFlow to access your camera to capture receipts"
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow SpendWise to access your photos for receipts and documents"
+          "photosPermission": "Allow MintyFlow to access your photos for receipts and documents"
         }
       ]
     ],
