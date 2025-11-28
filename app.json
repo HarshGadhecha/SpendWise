@@ -7,10 +7,11 @@
     "icon": "./assets/images/icon.png",
     "scheme": "mintyflow",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mintyflow.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Allow MintyFlow to use Face ID for secure authentication",
         "NSCameraUsageDescription": "Allow MintyFlow to use camera to capture receipts and documents",
