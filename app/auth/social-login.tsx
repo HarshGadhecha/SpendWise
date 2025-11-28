@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { authService } from '@/services/authService';
+import { storage, STORAGE_KEYS } from '@/lib/store/storage';
 
 export default function SocialLoginScreen() {
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,14 @@ export default function SocialLoginScreen() {
       if (result?.type === 'success' && result.authentication?.idToken) {
         setLoading(true);
         await authService.signInWithGoogle(result.authentication.idToken);
-        router.replace('/onboarding');
+
+        // Check if onboarding is completed
+        const onboardingCompleted = await storage.get<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
+        if (onboardingCompleted) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/onboarding');
+        }
       }
     } catch (error: any) {
       Alert.alert('Google Sign-In Failed', error.message);
@@ -51,7 +59,14 @@ export default function SocialLoginScreen() {
       if (credential.identityToken) {
         setLoading(true);
         await authService.signInWithApple(credential.identityToken);
-        router.replace('/onboarding');
+
+        // Check if onboarding is completed
+        const onboardingCompleted = await storage.get<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
+        if (onboardingCompleted) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/onboarding');
+        }
       }
     } catch (error: any) {
       if (error.code !== 'ERR_REQUEST_CANCELED') {

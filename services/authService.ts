@@ -1,16 +1,17 @@
 import {
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
+  User as FirebaseUser,
   GoogleAuthProvider,
   OAuthProvider,
+  deleteUser,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
   signInWithCredential,
-  User as FirebaseUser,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/config';
 import { User } from '@/lib/types';
 import { useAuthStore } from '@/lib/store/useAuthStore';
-import { storageUtils, STORAGE_KEYS } from '@/lib/store/storage';
+import { storage, storageUtils, STORAGE_KEYS } from '@/lib/store/storage';
 
 class AuthService {
   // Initialize auth listener
@@ -42,7 +43,7 @@ class AuthService {
         useAuthStore.getState().setIsAuthenticated(true);
 
         // Check if onboarding is completed
-        const onboardingCompleted = storageUtils.get<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
+        const onboardingCompleted = await storage.get<boolean>(STORAGE_KEYS.ONBOARDING_COMPLETED);
         useAuthStore.getState().setIsOnboardingCompleted(onboardingCompleted || false);
       } else {
         useAuthStore.getState().setUser(null);
@@ -123,7 +124,7 @@ class AuthService {
     try {
       await firebaseSignOut(auth);
       useAuthStore.getState().logout();
-      storageUtils.clear();
+      await storage.clear();
     } catch (error: any) {
       throw new Error(error.message);
     }
@@ -173,7 +174,7 @@ class AuthService {
   async completeOnboarding(userId: string, onboardingData: Partial<User>): Promise<void> {
     try {
       await this.updateUserProfile(userId, onboardingData);
-      storageUtils.set(STORAGE_KEYS.ONBOARDING_COMPLETED, true);
+      await storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, true);
       useAuthStore.getState().setIsOnboardingCompleted(true);
     } catch (error: any) {
       throw new Error(error.message);
@@ -183,6 +184,31 @@ class AuthService {
   // Get current user
   getCurrentUser(): FirebaseUser | null {
     return auth.currentUser;
+  }
+
+  // Delete user account
+  async deleteAccount(): Promise<void> {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('No user is currently signed in');
+      }
+
+      const userId = currentUser.uid;
+
+      // Delete user profile from Firestore
+      const userDocRef = doc(db, 'users', userId);
+      await deleteDoc(userDocRef);
+
+      // Delete Firebase Auth user
+      await deleteUser(currentUser);
+
+      // Clear local state and storage
+      useAuthStore.getState().logout();
+      await storage.clear();
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
   }
 }
 

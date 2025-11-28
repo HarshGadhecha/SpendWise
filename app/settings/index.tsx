@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -6,15 +7,39 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  TextInput,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '@/lib/store/useAuthStore';
+import { useThemeStore } from '@/lib/store/useThemeStore';
 import { authService } from '@/services/authService';
-import { securityService } from '@/services/securityService';
+import { ThemePreference } from '@/lib/types';
 
 export default function SettingsScreen() {
   const { user } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
+  const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
+  const [displayName, setDisplayName] = useState(user?.displayName || '');
+
+  const handleThemeChange = (newTheme: ThemePreference) => {
+    setTheme(newTheme);
+  };
+
+  const handleUpdateProfile = async () => {
+    if (!user) return;
+
+    try {
+      await authService.updateUserProfile(user.id, {
+        displayName: displayName.trim(),
+      });
+      setEditProfileModalVisible(false);
+      Alert.alert('Success', 'Profile updated successfully');
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -28,6 +53,42 @@ export default function SettingsScreen() {
           onPress: async () => {
             await authService.signOut();
             router.replace('/auth');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            // Second confirmation
+            Alert.alert(
+              'Final Confirmation',
+              'This will permanently delete your account and all associated data. Are you absolutely sure?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete Forever',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await authService.deleteAccount();
+                      router.replace('/auth');
+                    } catch (error: any) {
+                      Alert.alert('Error', error.message);
+                    }
+                  },
+                },
+              ]
+            );
           },
         },
       ]
@@ -58,20 +119,83 @@ export default function SettingsScreen() {
               </Text>
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{user?.displayName}</Text>
+              <Text style={styles.profileName}>{user?.displayName || 'User'}</Text>
               <Text style={styles.profileEmail}>{user?.email}</Text>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                setDisplayName(user?.displayName || '');
+                setEditProfileModalVisible(true);
+              }}
+            >
+              <Text style={styles.editButton}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Theme Settings */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Theme</Text>
+          <View style={styles.themeContainer}>
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'light' && styles.themeOptionActive,
+              ]}
+              onPress={() => handleThemeChange('light')}
+            >
+              <Text style={styles.themeIcon}>☀️</Text>
+              <Text
+                style={[
+                  styles.themeText,
+                  theme === 'light' && styles.themeTextActive,
+                ]}
+              >
+                Light
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'dark' && styles.themeOptionActive,
+              ]}
+              onPress={() => handleThemeChange('dark')}
+            >
+              <Text style={styles.themeIcon}>🌙</Text>
+              <Text
+                style={[
+                  styles.themeText,
+                  theme === 'dark' && styles.themeTextActive,
+                ]}
+              >
+                Dark
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.themeOption,
+                theme === 'system' && styles.themeOptionActive,
+              ]}
+              onPress={() => handleThemeChange('system')}
+            >
+              <Text style={styles.themeIcon}>⚙️</Text>
+              <Text
+                style={[
+                  styles.themeText,
+                  theme === 'system' && styles.themeTextActive,
+                ]}
+              >
+                System
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Account Settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingIcon}>👤</Text>
-            <Text style={styles.settingText}>Edit Profile</Text>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.settingItem}>
             <Text style={styles.settingIcon}>🔒</Text>
             <Text style={styles.settingText}>Security & Privacy</Text>
@@ -90,11 +214,6 @@ export default function SettingsScreen() {
           <TouchableOpacity style={styles.settingItem}>
             <Text style={styles.settingIcon}>🔔</Text>
             <Text style={styles.settingText}>Notifications</Text>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingItem}>
-            <Text style={styles.settingIcon}>🎨</Text>
-            <Text style={styles.settingText}>Theme</Text>
             <Text style={styles.settingArrow}>›</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.settingItem}>
@@ -168,8 +287,52 @@ export default function SettingsScreen() {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
 
+        {/* Delete Account Button */}
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
+          <Text style={styles.deleteText}>Delete Account</Text>
+        </TouchableOpacity>
+
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={editProfileModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEditProfileModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Profile</Text>
+
+            <Text style={styles.inputLabel}>Display Name</Text>
+            <TextInput
+              style={styles.input}
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Enter your display name"
+              placeholderTextColor="#9ca3af"
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setEditProfileModalVisible(false)}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSave]}
+                onPress={handleUpdateProfile}
+              >
+                <Text style={styles.modalButtonTextSave}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -252,6 +415,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
   },
+  editButton: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#667eea',
+  },
+  themeContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  themeOption: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  themeOptionActive: {
+    borderColor: '#667eea',
+    backgroundColor: '#f5f3ff',
+  },
+  themeIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  themeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  themeTextActive: {
+    color: '#667eea',
+  },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -289,6 +486,82 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  deleteButton: {
+    backgroundColor: '#7f1d1d',
+    borderRadius: 12,
+    padding: 18,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 2,
+    borderColor: '#991b1b',
+  },
+  deleteText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#1f2937',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: '#f3f4f6',
+  },
+  modalButtonSave: {
+    backgroundColor: '#667eea',
+  },
+  modalButtonTextCancel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  modalButtonTextSave: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#ffffff',
   },
 });
